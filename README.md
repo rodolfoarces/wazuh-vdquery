@@ -1,0 +1,2 @@
+# wazuh-vdquery
+Vulnerability detection
