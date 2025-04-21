@@ -96,7 +96,7 @@ if __name__ == "__main__":
     ## Log to file or stdout
     # https://docs.python.org/3/howto/logging-cookbook.html#logging-cookbook
     # create file handler which logs even debug messages
-    logger = logging.getLogger("docker-output")
+    logger = logging.getLogger("vdquery")
 
     if args.debug:
         logger.setLevel(logging.DEBUG)
@@ -131,45 +131,10 @@ if __name__ == "__main__":
         fh.setFormatter(fh_formatter)
         # add the handlers to the logger
         logger.addHandler(fh)
-
-    if args.debug:
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.INFO)
-        
-     # If output file is set, all messages go there
-    if args.output:
-        # create console handler with a higher log level
-        fh = logging.FileHandler(args.output)
-        # Define log level
-        if args.debug == True:
-            fh.setLevel(logging.DEBUG)
-            fh_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        else:
-            fh.setLevel(logging.INFO)
-            fh_formatter = logging.Formatter('%(message)s')
-        
-        fh.setFormatter(fh_formatter)
-        # add the handlers to the logger
-        logger.addHandler(fh)
-    else:
-        # create console handler with a higher log level
-        fh = logging.StreamHandler()
-        # Define log level
-        if args.debug == True:
-            fh.setLevel(logging.DEBUG)
-            fh_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        else:
-            fh.setLevel(logging.INFO)
-            fh_formatter = logging.Formatter('%(message)s')
-        
-        fh.setFormatter(fh_formatter)
-        # add the handlers to the logger
-        logger.addHandler(fh)
     
     # Configurations
     script_dir = os.path.dirname(os.path.realpath(sys.argv[0]))
-    config_filename = str(os.path.join(script_dir, "fim-report.conf"))
+    config_filename = str(os.path.join(script_dir, "vdquery.conf"))
     # Load data from configuration file
     if os.path.isfile(config_filename):
         logger.debug("Opening configuration file")
@@ -179,7 +144,7 @@ if __name__ == "__main__":
         manager_username = config.get('manager', 'manager_username')
         manager_password = config.get('manager', 'manager_password')
         manager_host =  config.get('manager', 'manager_host')
-        manager_port =  config.get('manager', 'manager_api_port')
+        manager_port =  config.get('manager', 'manager_port')
         manager_url = "https://" + manager_host + ":" + manager_port
         
         # Wazuh indexer connection
@@ -191,6 +156,13 @@ if __name__ == "__main__":
     else:
         logger.debug("Error opening configuration file, taking default values")
         # Variables
+        # Wazuh manager
+        manager_username = "wazuh"
+        manager_password = "wazuh"
+        manager_host =  "localhost"
+        manager_port =  "55000"
+        manager_url = "https://" + manager_host + ":" + manager_port
+        #Wazuh indexer
         indexer_username = "admin"
         indexer_password = "admin"
         indexer_host = "localhost"
