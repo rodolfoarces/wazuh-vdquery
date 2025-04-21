@@ -83,7 +83,7 @@ def getAgentList():
 def getVulnerabilities(agent="all",username="admin",password="admin", url="http://localhost:9200"):
     vulnerabilities_request_header = {"Content-Type": "application/json; charset=utf-8"}
     vulnerabilities_request =requests.get(url, auth=HTTPBasicAuth( username, password), headers=vulnerabilities_request_header, verify=False)
-    r = json.loads(vulnerabilities_request.decode('utf-8'))
+    r = json.loads(vulnerabilities_request.content.decode('utf-8'))
     # Check
     if vulnerabilities_request.status_code != 200:
         logger.error("There were errors getting the agent list")
