@@ -16,6 +16,7 @@ import logging
 import time
 import os
 import configparser
+from requests.auth import HTTPBasicAuth
 
 # Disabling warning: /usr/lib/python3/dist-packages/urllib3/connectionpool.py:1100: InsecureRequestWarning: 
 # Unverified HTTPS request is being made to host '10.1.1.3'. Adding certificate verification is strongly advised.
@@ -79,6 +80,17 @@ def getAgentList():
         for agent in r['data']['affected_items']: 
             agent_list.append(agent)
 
+def getVulnerabilities(agent="all",username="admin",password="admin", url="http://localhost:9200"):
+    vulnerabilities_request_header = {"Content-Type": "application/json; charset=utf-8"}
+    vulnerabilities_request =requests.get(url, auth=HTTPBasicAuth( username, password), headers=vulnerabilities_request_header, verify=False)
+    r = json.loads(vulnerabilities_request.decode('utf-8'))
+    # Check
+    if vulnerabilities_request.status_code != 200:
+        logger.error("There were errors getting the agent list")
+        exit(2)
+    else:
+        logger.debug("Getting vulnerabilities - Authentication success")
+    
     
 if __name__ == "__main__":
     ## Log to file or stdout
@@ -249,3 +261,6 @@ if __name__ == "__main__":
         exit(1)
     else:
         getAgentList()
+        
+    # Connect to Indexer
+    getVulnerabilities(agent="all", username=indexer_username, password=indexer_password, url=indexer_url)
