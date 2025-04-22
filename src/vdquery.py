@@ -77,7 +77,7 @@ def getAgentList():
         logger.debug("No agents")
         exit(3)
     else:
-        for agent in r['data']['affected_items']: 
+        for agent in r['data']['affected_items']:
             agent_list.append(agent)
 
 def getVulnerabilities(agent="all",username="admin",password="admin", url="http://localhost:9200"):
@@ -90,6 +90,7 @@ def getVulnerabilities(agent="all",username="admin",password="admin", url="http:
         exit(2)
     else:
         logger.debug("Getting vulnerabilities - Authentication success")
+        logger.debug(vulnerabilities_request.content.decode('utf-8'))
     
     
 if __name__ == "__main__":
