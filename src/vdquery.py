@@ -42,6 +42,7 @@ args = parser.parse_args()
 #Variables
 manager_token = None
 agent_list = []
+vulnerability_list = []
 
 ## Log to file or stdout
 # https://docs.python.org/3/howto/logging-cookbook.html#logging-cookbook
@@ -92,7 +93,9 @@ def getVulnerabilities(agent="all",username="admin",password="admin", url="http:
         exit(2)
     else:
         logger.debug("Getting vulnerabilities - Authentication success")
-        logger.debug(vulnerabilities_request.content.decode('utf-8'))
+        for vulnerability in r["hits"]["hits"]:
+            vulnerability_list.append(vulnerability)
+        logger.debug(vulnerability_list)
     
     
 if __name__ == "__main__":
