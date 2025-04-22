@@ -82,10 +82,16 @@ def getAgentList():
             agent_list.append(agent)
 
 def getVulnerabilities(agent="all",username="admin",password="admin", url="http://localhost:9200"):
+    
     vulnerabilities_request_action = "/_search"
     vulnerabilities_request_url = url + "/wazuh-states-vulnerabilities-*" + vulnerabilities_request_action
     vulnerabilities_request_header = {"Content-Type": "application/json; charset=utf-8"}
-    vulnerabilities_request =requests.get(vulnerabilities_request_url, auth=HTTPBasicAuth( username, password), headers=vulnerabilities_request_header, verify=False)
+    if agent != "all":
+        vulnerabilities_request_data = { "query": { "match": { "agent.id": agent } } }
+        vulnerabilities_request =requests.get(vulnerabilities_request_url, auth=HTTPBasicAuth( username, password), headers=vulnerabilities_request_header, verify=False, data=vulnerabilities_request_data)
+    else:
+         vulnerabilities_request =requests.get(vulnerabilities_request_url, auth=HTTPBasicAuth( username, password), headers=vulnerabilities_request_header, verify=False)
+    
     r = json.loads(vulnerabilities_request.content.decode('utf-8'))
     # Check
     if vulnerabilities_request.status_code != 200:
@@ -94,8 +100,12 @@ def getVulnerabilities(agent="all",username="admin",password="admin", url="http:
     else:
         logger.debug("Getting vulnerabilities - Authentication success")
         for vulnerability in r["hits"]["hits"]:
-            vulnerability_list.append(vulnerability)
-        logger.debug(vulnerability_list)
+            
+                if vulnerability["_source"]["agent"] == agent:
+                    vulnerability_list.append(vulnerability)
+        else:
+        
+    logger.debug(vulnerability_list)
     
     
 if __name__ == "__main__":
@@ -241,4 +251,4 @@ if __name__ == "__main__":
         getAgentList()
         
     # Connect to Indexer
-    getVulnerabilities(agent="all", username=indexer_username, password=indexer_password, url=indexer_url)
+    getVulnerabilities(agent="001", username=indexer_username, password=indexer_password, url=indexer_url)
