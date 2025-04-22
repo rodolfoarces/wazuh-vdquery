@@ -89,7 +89,7 @@ def getVulnerabilities(agent="all",username="admin",password="admin", url="http:
     
     # Getting data based on query
     if agent != "all":
-        vulnerabilities_request_data = { "query": { "match": { "agent.id": agent } } }
+        vulnerabilities_request_data = { "query": { "term": { "agent.id": { "value": agent } } } }
         try:
             vulnerabilities_request =requests.get(vulnerabilities_request_url, auth=HTTPBasicAuth( username, password), headers=vulnerabilities_request_header, verify=False, data=json.dumps(vulnerabilities_request_data))
             vulnerabilities_request.raise_for_status()
