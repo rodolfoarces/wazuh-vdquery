@@ -81,8 +81,10 @@ def getAgentList():
             agent_list.append(agent)
 
 def getVulnerabilities(agent="all",username="admin",password="admin", url="http://localhost:9200"):
+    vulnerabilities_request_action = "/_search"
+    vulnerabilities_request_url = url + "/wazuh-states-vulnerabilities-*" + vulnerabilities_request_action
     vulnerabilities_request_header = {"Content-Type": "application/json; charset=utf-8"}
-    vulnerabilities_request =requests.get(url, auth=HTTPBasicAuth( username, password), headers=vulnerabilities_request_header, verify=False)
+    vulnerabilities_request =requests.get(vulnerabilities_request_url, auth=HTTPBasicAuth( username, password), headers=vulnerabilities_request_header, verify=False)
     r = json.loads(vulnerabilities_request.content.decode('utf-8'))
     # Check
     if vulnerabilities_request.status_code != 200:
