@@ -86,12 +86,22 @@ def getVulnerabilities(agent="all",username="admin",password="admin", url="http:
     vulnerabilities_request_action = "/_search"
     vulnerabilities_request_url = url + "/wazuh-states-vulnerabilities-*" + vulnerabilities_request_action
     vulnerabilities_request_header = {"Content-Type": "application/json; charset=utf-8"}
+    
+    # Getting data based on query
     if agent != "all":
         vulnerabilities_request_data = { "query": { "match": { "agent.id": agent } } }
-        vulnerabilities_request =requests.get(vulnerabilities_request_url, auth=HTTPBasicAuth( username, password), headers=vulnerabilities_request_header, verify=False, data=vulnerabilities_request_data)
+        try:
+            vulnerabilities_request =requests.get(vulnerabilities_request_url, auth=HTTPBasicAuth( username, password), headers=vulnerabilities_request_header, verify=False, data=json.dumps(vulnerabilities_request_data))
+            vulnerabilities_request.raise_for_status()
+        except requests.exceptions.HTTPError as error:
+            raise SystemExit(error)
     else:
-         vulnerabilities_request =requests.get(vulnerabilities_request_url, auth=HTTPBasicAuth( username, password), headers=vulnerabilities_request_header, verify=False)
+        try:
+            vulnerabilities_request =requests.get(vulnerabilities_request_url, auth=HTTPBasicAuth( username, password), headers=vulnerabilities_request_header, verify=False)
+        except requests.exceptions.HTTPError as error:
+            raise SystemExit(error)
     
+    # Request analysis
     r = json.loads(vulnerabilities_request.content.decode('utf-8'))
     # Check
     if vulnerabilities_request.status_code != 200:
@@ -100,12 +110,10 @@ def getVulnerabilities(agent="all",username="admin",password="admin", url="http:
     else:
         logger.debug("Getting vulnerabilities - Authentication success")
         for vulnerability in r["hits"]["hits"]:
-            
-                if vulnerability["_source"]["agent"] == agent:
-                    vulnerability_list.append(vulnerability)
-        else:
-        
-    logger.debug(vulnerability_list)
+            vulnerability_list.append(vulnerability)
+    
+    #logger.debug(vulnerability_list)
+    return vulnerability_list
     
     
 if __name__ == "__main__":
@@ -251,4 +259,4 @@ if __name__ == "__main__":
         getAgentList()
         
     # Connect to Indexer
-    getVulnerabilities(agent="001", username=indexer_username, password=indexer_password, url=indexer_url)
+    getVulnerabilities(agent="all", username=indexer_username, password=indexer_password, url=indexer_url)
