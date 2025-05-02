@@ -42,7 +42,6 @@ args = parser.parse_args()
 #Variables
 manager_token = None
 agent_list = []
-vulnerability_list = []
 
 ## Log to file or stdout
 # https://docs.python.org/3/howto/logging-cookbook.html#logging-cookbook
@@ -82,7 +81,7 @@ def getAgentList():
             agent_list.append(agent)
 
 def getVulnerabilities(agent="all",username="admin",password="admin", url="http://localhost:9200"):
-    
+    vulnerabilities_found = []  
     vulnerabilities_request_action = "/_search"
     vulnerabilities_request_url = url + "/wazuh-states-vulnerabilities-*" + vulnerabilities_request_action
     vulnerabilities_request_header = {"Content-Type": "application/json; charset=utf-8"}
@@ -98,6 +97,7 @@ def getVulnerabilities(agent="all",username="admin",password="admin", url="http:
     else:
         try:
             vulnerabilities_request =requests.get(vulnerabilities_request_url, auth=HTTPBasicAuth( username, password), headers=vulnerabilities_request_header, verify=False)
+            vulnerabilities_request.raise_for_status()
         except requests.exceptions.HTTPError as error:
             raise SystemExit(error)
     
@@ -105,17 +105,52 @@ def getVulnerabilities(agent="all",username="admin",password="admin", url="http:
     r = json.loads(vulnerabilities_request.content.decode('utf-8'))
     # Check
     if vulnerabilities_request.status_code != 200:
-        logger.error("There were errors getting the agent list")
+        logger.error("There were errors getting vulnerability list")
         exit(2)
     else:
         logger.debug("Getting vulnerabilities - Authentication success")
-        for vulnerability in r["hits"]["hits"]:
-            vulnerability_list.append(vulnerability)
+        if r["hits"]["total"]["value"] >= 1 :
+            for vulnerability in r["hits"]["hits"]:
+                vulnerabilities_found.append(vulnerability)
+        else:
+            logger.debug( "No vulnerabilities found")
+
+    return vulnerabilities_found
     
-    #logger.debug(vulnerability_list)
-    return vulnerability_list
-    
-    
+
+def getVulnerabilityEvents(vulnerability_list, username="admin",password="admin", url="https://localhost:9200"):
+    for vulnerability in vulnerability_list:
+        vulnerability_data = json.loads(vulnerability)
+        vulnerabilities_pending = []
+        vulnerabilityevent_request_action = "/_search"
+        vulnerabilityevent_request_url = url + "/wazuh-alerts-*" + vulnerabilityevent_request_action
+        vulnerabilityevent_request_header = {"Content-Type": "application/json; charset=utf-8"}
+        
+        # Getting data based on query
+        # Query with status
+        # {"query":{"bool":{"must":[{"term":{"agent.id": vulnerability_data["_source"]["agent"]["id"] }},{"term":{"data.vulnerability.cve": vulnerability_data["_source"]["vulnerability"]["cve"]}},{"term":{"data.vulnerability.status":"Active"}}]}}}
+        # Query without status
+        # {"query":{"bool":{"must":[{"term":{"agent.id": vulnerability_data["_source"]["agent"]["id"] }},{"term":{"data.vulnerability.cve":"CVE-2025-999999"}}]}}}
+        vulnerabilityevent_request_data = {"query":{"bool":{"must":[{"term":{"agent.id": vulnerability_data["_source"]["agent"]["id"] }},{"term":{"data.vulnerability.cve": vulnerability_data["_source"]["vulnerability"]["cve"]}},{"term":{"data.vulnerability.status":"Active"}}]}}}
+
+        try:
+            vulnerabilities_request =requests.get(vulnerabilityevent_request_url, auth=HTTPBasicAuth( username, password), headers=vulnerabilityevent_request_header, verify=False, data=json.dumps(vulnerabilityevent_request_data))
+            vulnerabilities_request.raise_for_status()
+        except requests.exceptions.HTTPError as error:
+            raise SystemExit(error)
+        # Request analysis
+        r = json.loads(vulnerabilities_request.content.decode('utf-8'))
+        # Check
+        if vulnerabilities_request.status_code != 200:
+            logger.error("There were errors getting vulnerability events")
+            exit(2)
+        else:
+            logger.debug("Getting vulnerability events - Authentication success")
+            if r["hits"]["total"]["value"] == 0 :
+                vulnerabilities_pending.append(vulnerability)
+
+    return vulnerabilities_pending
+
 if __name__ == "__main__":
     ## Log to file or stdout
     # https://docs.python.org/3/howto/logging-cookbook.html#logging-cookbook
