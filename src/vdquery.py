@@ -120,7 +120,6 @@ def getVulnerabilities(agent="all",username="admin",password="admin", url="http:
 
 def getVulnerabilityEvents(vulnerability_list, username="admin",password="admin", url="https://localhost:9200"):
     for vulnerability in vulnerability_list:
-        vulnerability_data = json.loads(vulnerability)
         vulnerabilities_pending = []
         vulnerabilityevent_request_action = "/_search"
         vulnerabilityevent_request_url = url + "/wazuh-alerts-*" + vulnerabilityevent_request_action
@@ -128,10 +127,10 @@ def getVulnerabilityEvents(vulnerability_list, username="admin",password="admin"
         
         # Getting data based on query
         # Query with status
-        # {"query":{"bool":{"must":[{"term":{"agent.id": vulnerability_data["_source"]["agent"]["id"] }},{"term":{"data.vulnerability.cve": vulnerability_data["_source"]["vulnerability"]["cve"]}},{"term":{"data.vulnerability.status":"Active"}}]}}}
+        # {"query":{"bool":{"must":[{"term":{"agent.id": vulnerability["_source"]["agent"]["id"] }},{"term":{"data.vulnerability.cve": vulnerability["_source"]["vulnerability"]["id"]}},{"term":{"data.vulnerability.status":"Active"}}]}}}
         # Query without status
-        # {"query":{"bool":{"must":[{"term":{"agent.id": vulnerability_data["_source"]["agent"]["id"] }},{"term":{"data.vulnerability.cve":"CVE-2025-999999"}}]}}}
-        vulnerabilityevent_request_data = {"query":{"bool":{"must":[{"term":{"agent.id": vulnerability_data["_source"]["agent"]["id"] }},{"term":{"data.vulnerability.cve": vulnerability_data["_source"]["vulnerability"]["cve"]}},{"term":{"data.vulnerability.status":"Active"}}]}}}
+        # {"query":{"bool":{"must":[{"term":{"agent.id": vulnerability["_source"]["agent"]["id"] }},{"term":{"data.vulnerability.cve": vulnerability["_source"]["vulnerability"]["id"]}}]}}}
+        vulnerabilityevent_request_data = {"query":{"bool":{"must":[{"term":{"agent.id": vulnerability["_source"]["agent"]["id"] }},{"term":{"data.vulnerability.cve":vulnerability["_source"]["vulnerability"]["id"]}}]}}}
 
         try:
             vulnerabilities_request =requests.get(vulnerabilityevent_request_url, auth=HTTPBasicAuth( username, password), headers=vulnerabilityevent_request_header, verify=False, data=json.dumps(vulnerabilityevent_request_data))
@@ -294,4 +293,5 @@ if __name__ == "__main__":
         getAgentList()
         
     # Connect to Indexer
-    getVulnerabilities(agent="all", username=indexer_username, password=indexer_password, url=indexer_url)
+    found_vulnerabilities = getVulnerabilities(agent="all", username=indexer_username, password=indexer_password, url=indexer_url)
+    pending_vulnerabilities = getVulnerabilityEvents(found_vulnerabilities, username=indexer_username, password=indexer_password, url=indexer_url)
