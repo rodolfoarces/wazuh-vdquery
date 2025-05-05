@@ -118,9 +118,28 @@ def getVulnerabilities(agent="all",username="admin",password="admin", url="http:
     return vulnerabilities_found
     
 def getVulnerabilityToEvent(vulnerability):
-    vulnerabilityevent_content = None
     # Basic structure (missing field updated_at)
-    # {"vulnerability":{"severity":"_source-vulnerability-severity","package":{"name":"_source-package-name","version":"_source-package-version","architecture":"_source-package-architecture"},"published":"_source-vulnerability-published_at","classification":"_source-vulnerability-classification","title":"_source-vulnerability-id afecting _source-package-name indentified","type":"_source-vulnerability-category","reference":"_source-vulnerability-reference","score":{"version":"_source-vulnerability-score-version","base":"_source-vulnerability-score-base"},"cve":"_source-vulnerability-id","enumeration":"_source-vulnerability-enumeration","cvss":{"cvss3":{"base_score":"_source-vulnerability-score-base"}},"status":"Active"}}
+    vulnerabilityevent_title = vulnerability["_source"]["vulnerability"]["id"] + " afecting " +  vulnerability["_source"]["package"]["name"] + " indentified."
+    vulnerabilityevent_content =  { "vulnerability": {
+                                        "severity": vulnerability["_source"]["vulnerability"]["severity"], 
+                                        "package": { 
+                                            "name": vulnerability["_source"]["package"]["name"],
+                                            "version": vulnerability["_source"]["package"]["version"],
+                                            "architecture": vulnerability["_source"]["package"]["architecture"] },
+                                        "published": vulnerability["_source"]["vulnerability"]["published_at"],
+                                        "classification": vulnerability["_source"]["vulnerability"]["classification"],
+                                        "title": vulnerabilityevent_title,
+                                        "type":vulnerability["_source"]["vulnerability"]["category"],
+                                        "reference":vulnerability["_source"]["vulnerability"]["reference"],
+                                        "score": {
+                                            "version": vulnerability["_source"]["vulnerability"]["score"]["version"],
+                                            "base": vulnerability["_source"]["vulnerability"]["score"]["base"] },
+                                        "cve": vulnerability["_source"]["vulnerability"]["id"],
+                                        "enumeration":vulnerability["_source"]["vulnerability"]["enumeration"],
+                                        "cvss": { 
+                                            "cvss3": 
+                                                { "base_score":vulnerability["_source"]["vulnerability"]["score"]["base"] } },
+                                        "status": "Active" } }
     return vulnerabilityevent_content
     
 
@@ -301,3 +320,5 @@ if __name__ == "__main__":
     # Connect to Indexer
     found_vulnerabilities = getVulnerabilities(agent="all", username=indexer_username, password=indexer_password, url=indexer_url)
     pending_vulnerabilities = getVulnerabilityEvents(found_vulnerabilities, username=indexer_username, password=indexer_password, url=indexer_url)
+    for pending_vulnerability in pending_vulnerabilities:
+        data = getVulnerabilityToEvent(pending_vulnerability)
