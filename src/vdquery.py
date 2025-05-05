@@ -120,7 +120,11 @@ def getVulnerabilities(agent="all",username="admin",password="admin", url="http:
 def getVulnerabilityToEvent(vulnerability):
     # Basic structure (missing field updated_at)
     vulnerabilityevent_title = vulnerability["_source"]["vulnerability"]["id"] + " afecting " +  vulnerability["_source"]["package"]["name"] + " indentified."
-    vulnerabilityevent_content =  { "vulnerability": {
+    vulnerabilityevent_content =  { "agent": {
+                                        "id": vulnerability["_source"]["agent"]["id"],
+                                        "name": vulnerability["_source"]["agent"]["name"],
+                                        "ip": "-" },
+                                    "data": { "vulnerability": {
                                         "severity": vulnerability["_source"]["vulnerability"]["severity"], 
                                         "package": { 
                                             "name": vulnerability["_source"]["package"]["name"],
@@ -129,17 +133,17 @@ def getVulnerabilityToEvent(vulnerability):
                                         "published": vulnerability["_source"]["vulnerability"]["published_at"],
                                         "classification": vulnerability["_source"]["vulnerability"]["classification"],
                                         "title": vulnerabilityevent_title,
-                                        "type":vulnerability["_source"]["vulnerability"]["category"],
-                                        "reference":vulnerability["_source"]["vulnerability"]["reference"],
+                                        "type": vulnerability["_source"]["vulnerability"]["category"],
+                                        "reference": vulnerability["_source"]["vulnerability"]["reference"],
                                         "score": {
                                             "version": vulnerability["_source"]["vulnerability"]["score"]["version"],
                                             "base": vulnerability["_source"]["vulnerability"]["score"]["base"] },
                                         "cve": vulnerability["_source"]["vulnerability"]["id"],
-                                        "enumeration":vulnerability["_source"]["vulnerability"]["enumeration"],
+                                        "enumeration": vulnerability["_source"]["vulnerability"]["enumeration"],
                                         "cvss": { 
-                                            "cvss3": 
-                                                { "base_score":vulnerability["_source"]["vulnerability"]["score"]["base"] } },
-                                        "status": "Active" } }
+                                            "cvss3": { 
+                                                "base_score": vulnerability["_source"]["vulnerability"]["score"]["base"] } },
+                                        "status": "Active" } } }
     return vulnerabilityevent_content
     
 
