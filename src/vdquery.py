@@ -117,6 +117,12 @@ def getVulnerabilities(agent="all",username="admin",password="admin", url="http:
 
     return vulnerabilities_found
     
+def getVulnerabilityToEvent(vulnerability):
+    vulnerabilityevent_content = None
+    # Basic structure (missing field updated_at)
+    # {"vulnerability":{"severity":"_source-vulnerability-severity","package":{"name":"_source-package-name","version":"_source-package-version","architecture":"_source-package-architecture"},"published":"_source-vulnerability-published_at","classification":"_source-vulnerability-classification","title":"_source-vulnerability-id afecting _source-package-name indentified","type":"_source-vulnerability-category","reference":"_source-vulnerability-reference","score":{"version":"_source-vulnerability-score-version","base":"_source-vulnerability-score-base"},"cve":"_source-vulnerability-id","enumeration":"_source-vulnerability-enumeration","cvss":{"cvss3":{"base_score":"_source-vulnerability-score-base"}},"status":"Active"}}
+    return vulnerabilityevent_content
+    
 
 def getVulnerabilityEvents(vulnerability_list, username="admin",password="admin", url="https://localhost:9200"):
     for vulnerability in vulnerability_list:
