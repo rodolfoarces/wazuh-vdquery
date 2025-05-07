@@ -81,8 +81,11 @@ def getAgentList():
             agent_list.append(agent)
 
 def getVulnerabilities(agent="all",username="admin",password="admin", url="http://localhost:9200"):
-    vulnerabilities_found = []  
-    vulnerabilities_request_action = "/_search"
+    vulnerabilities_found = []
+    total_vulnerability_count = 0
+    current_vulnerability_count = 0
+    offset = 30
+    vulnerabilities_request_action = "/_search?from="+ str(current_vulnerability_count) +"&size=" + str(current_vulnerability_count + offset) 
     vulnerabilities_request_url = url + "/wazuh-states-vulnerabilities-*" + vulnerabilities_request_action
     vulnerabilities_request_header = {"Content-Type": "application/json; charset=utf-8"}
     
@@ -173,9 +176,11 @@ def getVulnerabilityEvents(vulnerability_list, username="admin",password="admin"
             logger.error("There were errors getting vulnerability events")
             exit(2)
         else:
-            logger.debug("Getting vulnerability events - Authentication success")
             if r["hits"]["total"]["value"] == 0 :
+                logger.debug("Vulnerability: " + vulnerability["_source"]["vulnerability"]["id"] + " has no events, adding to pending vulnerabilities")
                 vulnerabilities_pending.append(vulnerability)
+            else:
+                logger.debug("Vulnerability: " + vulnerability["_source"]["vulnerability"]["id"] + " has events assosiated, not managing")            
 
     return vulnerabilities_pending
 
